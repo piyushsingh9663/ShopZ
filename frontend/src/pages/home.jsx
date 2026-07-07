@@ -1,7 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import ProductCard from '../components/ProductCard';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
@@ -11,8 +10,8 @@ const Home = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`);
-                const data = response.data;
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/products`);
+                const data = await res.json();
                 setProducts(data.slice(0, 10));
             } catch (error) {
                 console.error('Error fetching products:', error);
