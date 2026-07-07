@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors(
   {
-    origin: ['http://localhost:5000', 'http://127.0.0.1:5000'],
+    origin: ['http://localhost:5000', 'https://shopz-iv59.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
