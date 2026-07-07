@@ -10,6 +10,7 @@ const Home = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                console.log(import.meta.env.VITE_API_URL);
                 const res = await fetch(`${import.meta.env.VITE_API_URL}/api/products`);
                 const data = await res.json();
                 setProducts(data.slice(0, 10));
