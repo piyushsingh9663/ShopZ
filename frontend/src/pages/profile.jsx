@@ -30,7 +30,7 @@ const Profile = () => {
     }
     const fetchMyOrders = async () => {
       try {
-        const res = await fetch('/api/orders/myorders', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/myorders`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         const data = await res.json();
@@ -64,7 +64,7 @@ const Profile = () => {
     }
 
     try {
-      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/orders/${orderId}/cancel`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const Profile = () => {
     }
 
     try {
-      const res = await fetch('/api/auth/delete-account', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/delete-account`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

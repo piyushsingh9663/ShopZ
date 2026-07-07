@@ -11,7 +11,7 @@ const Home = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await axios.get('/api/products');
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`);
                 const data = response.data;
                 setProducts(data.slice(0, 10));
             } catch (error) {
