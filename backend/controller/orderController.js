@@ -27,16 +27,17 @@ const createOrder = async (req, res) => {
         });
         const createdOrder = await order.save();
         res.status(201).json({message: 'Order created successfully', order: createdOrder});
-        try {
-            sendEmail({
-                email: req.user.email,
-                subject: 'Order Confirmation',
-                message: `Hi ${req.user.name},\n\nThank you for your order. Your order has been received and is being processed.\n\nOrder Details:\nTotal Price: ₹${totalAmount}\nShipping Address: ${address.fullName}, ${address.street}, ${address.city}, ${address.postalCode}, ${address.country}\n\nWe will notify you once your order is shipped.\n\nBest regards,\nShopZ Team`
-            });
-            console.log(`Order confirmation email sent to ${req.user.email} for order ${createdOrder._id}`);
-        } catch (emailError) {
+        sendEmail({
+            email: req.user.email,
+            subject: 'Order Confirmation',
+            message: `Hi ${req.user.name},\n\nThank you for your order. Your order has been received and is being processed.\n\nOrder Details:\nTotal Price: ₹${totalAmount}\nShipping Address: ${address.fullName}, ${address.street}, ${address.city}, ${address.postalCode}, ${address.country}\n\nWe will notify you once your order is shipped.\n\nBest regards,\nShopZ Team`
+          }).then(() => {
+            console.log(`Order confirmation email sent to ${req.user.email} for order ${createdOrder._id}`); 
+          }).catch((emailError) => {
             console.error(`Failed to send order email to ${req.user.email}:`, emailError.message || emailError);
-        }
+          }
+        
+        );        
 
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -107,16 +108,15 @@ const cancelOrder = async (req, res) => {
         order.status = 'cancelled';
         const updatedOrder = await order.save();
         res.json({ message: 'Order cancelled successfully', order: updatedOrder });
-        try {
-            sendEmail({
-                email: order.user?.email || req.user.email,
-                subject: 'Order Cancelled',
-                message: `Hi ${order.user?.name || req.user.name},\n\nYour order has been cancelled successfully.\n\nOrder ID: ${order._id}\nTotal Amount: ₹${order.totalAmount}\n\nThanks,\nShopZ Team`
-            });
+        sendEmail({
+            email: order.user?.email || req.user.email,
+            subject: 'Order Cancelled',
+            message: `Hi ${order.user?.name || req.user.name},\n\nYour order has been cancelled successfully.\n\nOrder ID: ${order._id}\nTotal Amount: ₹${order.totalAmount}\n\nThanks,\nShopZ Team`
+        }).then(() => {
             console.log(`Order cancellation email sent to ${order.user?.email || req.user.email} for order ${updatedOrder._id}`);
-        } catch (emailError) {
+        }).catch((emailError) => {
             console.error(`Failed to send cancellation email to ${order.user?.email || req.user.email}:`, emailError.message || emailError);
-        }
+        });
 
     } catch (error) {
         res.status(500).json({ message: 'Error cancelling order', error });
