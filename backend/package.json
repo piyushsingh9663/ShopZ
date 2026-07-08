@@ -10,11 +10,12 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev":"nodemon index.js",
-    "seed":"node seed.js",
-    "seed:delete":"node seed.js -d"
+    "dev": "nodemon index.js",
+    "seed": "node seed.js",
+    "seed:delete": "node seed.js -d"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
