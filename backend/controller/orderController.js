@@ -113,8 +113,27 @@ const updateOrderStatus = async (req, res) => {
         if(!order){
             return res.status(404).json({message:'Order not found'});
         }
-        order.status = normalizeStatus(req.body.status);
+
+        const prevStatus = order.status;
+        const newStatus = normalizeStatus(req.body.status);
+
+        // Prevent cancelling after shipped/delivered
+        if ((prevStatus === 'shipped' || prevStatus === 'delivered') && newStatus === 'cancelled') {
+            return res.status(400).json({ message: 'Order cannot be cancelled after shipping/delivery' });
+        }
+
+        order.status = newStatus;
         const updatedOrder = await order.save();
+
+        // If admin set status to cancelled and the order had payment (stock was reduced), restore stock
+        if (prevStatus !== 'cancelled' && newStatus === 'cancelled' && updatedOrder.paymentId) {
+            try {
+                await increaseStockForOrder(updatedOrder);
+            } catch (stockErr) {
+                console.error('Failed to restore stock for order via updateOrderStatus', updatedOrder._id, stockErr.message || stockErr);
+            }
+        }
+
         res.json(updatedOrder);
     }catch(error){
         res.status(500).json({message:'Error updating order status',error})
