@@ -2,8 +2,7 @@
 
 <div align="center">
 
-![ShopZ Logo](./frontend/public/ShopZ.png)
-![Home Page](./demoImages/home.png>)
+![Home Page](./demoImages/home.png)
 ### Premium Full Stack E-Commerce Platform
 
 Built using the **MERN Stack** with secure authentication, admin dashboard, online payments, product management, and order tracking.
