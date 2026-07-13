@@ -1,4 +1,5 @@
 const Order = require('../model/order');
+const Product = require('../model/product');
 
 const sendEmail = require('../utils/sendMail');
 
@@ -9,6 +10,35 @@ const normalizeStatus = (status) => {
     const validStatuses = ['pending', 'shipped', 'delivered', 'cancelled'];
 
     return validStatuses.includes(normalized) ? normalized : 'pending';
+};
+
+// Helpers to adjust product stock for an order
+const reduceStockForOrder = async (order) => {
+    if (!order || !order.items) return;
+    for (const item of order.items) {
+        try {
+            const product = await Product.findById(item.productId);
+            if (!product) continue;
+            product.stock = Math.max(0, (product.stock || 0) - (item.qty || 0));
+            await product.save();
+        } catch (err) {
+            console.error('reduceStock error for product', item.productId, err.message || err);
+        }
+    }
+};
+
+const increaseStockForOrder = async (order) => {
+    if (!order || !order.items) return;
+    for (const item of order.items) {
+        try {
+            const product = await Product.findById(item.productId);
+            if (!product) continue;
+            product.stock = (product.stock || 0) + (item.qty || 0);
+            await product.save();
+        } catch (err) {
+            console.error('increaseStock error for product', item.productId, err.message || err);
+        }
+    }
 };
 
 //create a new order
@@ -26,6 +56,15 @@ const createOrder = async (req, res) => {
             totalAmount
         });
         const createdOrder = await order.save();
+        // If paymentId is present, consider order confirmed and reduce stock
+        if (paymentId) {
+            try {
+                await reduceStockForOrder(createdOrder);
+            } catch (stockErr) {
+                console.error('Failed to reduce stock for order', createdOrder._id, stockErr.message || stockErr);
+            }
+        }
+
         res.status(201).json({message: 'Order created successfully', order: createdOrder});
         sendEmail({
             email: req.user.email,
@@ -105,8 +144,18 @@ const cancelOrder = async (req, res) => {
             return res.status(400).json({ message: 'Order cannot be cancelled after shipping/delivery' });
         }
 
+        const prevStatus = order.status;
         order.status = 'cancelled';
         const updatedOrder = await order.save();
+        // If order had a paymentId (stock was reduced on create), restore stock
+        if (order.paymentId) {
+            try {
+                await increaseStockForOrder(order);
+            } catch (stockErr) {
+                console.error('Failed to restore stock for order', order._id, stockErr.message || stockErr);
+            }
+        }
+
         res.json({ message: 'Order cancelled successfully', order: updatedOrder });
         sendEmail({
             email: order.user?.email || req.user.email,
